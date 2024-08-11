@@ -1,0 +1,91 @@
+﻿.terminal {
+    width: 80%;
+    height: 65vh;
+    margin: 20px auto;
+    border: 4px solid #333;
+    border-radius: 5px;
+    background-color: #000;
+    font-family: "Courier New", Courier, monospace;
+    color: #fff;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background-color: #444;
+    color: #eee;
+    padding: 10px;
+    font-weight: bold;
+    border-bottom: 4px solid #333;
+    text-align: center;
+}
+
+.terminal-body {
+    flex: 1;
+    padding: 15px;
+    background-color: #000;
+    color: #fff;
+    font-size: 1em;
+    overflow-y: auto;
+    Enable vertical scrolling overflow-x: hidden;
+}
+
+.prompt {
+    font-family: 'Courier New', Courier, monospace;
+    color: #00FF00;  
+    white-space: pre-wrap;  /*Preserve whitespace */
+}
+
+.system {
+    font-family: 'Courier New', Courier, monospace;
+    color: #FFFFFF;  /*White color for system text */
+    white-space: pre-wrap;  /*Preserve whitespace */
+}
+
+.external {
+    font-family: 'Courier New', Courier, monospace;
+    color: #C70039;
+    white-space: pre-wrap;
+}
+
+.internal {
+    font-family: 'Courier New', Courier, monospace;
+    color: royalblue;
+    white-space: pre-wrap;
+}
+
+input {
+    font-size: 0.85em;
+}
+
+
+ /*Media query for mobile devices*/
+@media (max-width: 768px) {
+    .terminal-body {
+        font-size: 0.8em; /*Smaller font size for mobile */
+        padding: 10px; /*Adjust padding if needed */
+    }
+
+        .terminal-body input,
+        .terminal-body select {
+            font-size: 0.8em;
+        }
+
+        .terminal-body button {
+            font-size: 0.8em;
+        }
+
+    @media (max-width: 480px) {
+        .terminal-body {
+            font-size: 0.75em;
+        }
+
+            .terminal-body input,
+            .terminal-body select {
+                font-size: 0.75em;
+            }
+
+            .terminal-body button {
+                font-size: 0.75em;
+            }
+    }
+}

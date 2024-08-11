@@ -1,0 +1,54 @@
+﻿
+/* The hero image */
+.hero-image {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(https://finalspaceapi.com/api/location/image/final_space.jpg);
+
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    background-repeat: no-repeat;
+    background-size: cover;
+    
+}
+
+
+.fs-head {
+
+    height:20vh;
+    font-weight: 400;
+    text-align:center;
+    align-content: center;
+    color: darkgrey;
+    background-color: black;
+}
+
+@keyframes grow-shrink {
+    0% {
+        transform: scale(0.1);
+    }
+
+    50% {
+        transform: scale(1.4);
+    }
+
+    80% {
+        transform: scale(1.4);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.title-animate {
+    animation: grow-shrink 2s ease-out;
+}
+
+.subtitle {
+    position: absolute;
+    bottom: 5%; 
+    right: 20px; 
+    font-style: italic;
+    font-size: 0.8em; 
+    color: #888; 
+}

@@ -1,0 +1,494 @@
+﻿@page "/"
+
+@using System.Net.Http
+@using System.Net.Http.Json
+@inject IJSRuntime JS
+
+
+<PageTitle>The Final Space</PageTitle>
+
+<Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" />
+
+
+<div class="waiting">
+  @*  <GaryComponent/> *@
+</div>
+
+
+
+@code {
+    [Inject]
+    private HttpClient? Http { get; set; }
+
+    private readonly string baseUrl = "https://finalspaceapi.com/api/v0/";
+    private bool showCast { get; set; } = false;
+
+    private readonly string characterUrl = "character";
+    private readonly string locationUrl = "location";
+    private readonly string quoteUrl = "quote";
+    private readonly string episodeUrl = "episode";
+
+    private List<CharacterModel> characters { get; set; } = new();
+    private List<CharacterModel> charactersFullList { get; set; } = new();
+    private Dictionary<string, List<CharacterModel>> charactersBySpecies { get; set; } = new();
+    private List<string> sortedSpecies { get; set; } = new();
+    private string selectedSpecies { get; set; } = string.Empty;
+
+    private List<LocationModel> locations { get; set; } = new();
+    private string selectedLocation { get; set; } = string.Empty;
+
+    private List<QuoteModel> quotes { get; set; } = new();
+    private string selectedQuote { get; set; } = string.Empty;
+    private List<CharacterModel> characterQuotes { get; set; } = new();
+
+    private List<EpisodeModel> episodes { get; set; } = new();
+    // private string selectedEpisode { get; set; } = string.Empty;
+    private List<CharacterModel> characterEpisodes { get; set; } = new();
+
+    private EpisodeModel seletedStory { get; set; } = new();
+    private List<CharacterModel> selectedEpisodeCharacters { get; set; } = new();
+    private string startText { get; set; } = string.Empty;
+    private CharacterModel selectedCharacter { get; set; } = new();
+    private List<string> skills { get; set; } = new();
+    // private string selectedSkill { get; set; } = string.Empty;
+    private string selectedOption { get; set; } = string.Empty;
+
+    private List<TermialLines> terminalLines { get; set; } = new();
+
+    private List<CharacterModel> selectedCrew { get; set; } = new();
+    private List<CharacterModel> potentialCrew = new();
+    private List<string> characterOptions { get; set; } = new();
+    // private string selectedCrewOption { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetCast();
+            await GetLocations();
+            await GetQuotes();
+            await GetEpisodes();
+
+            //Set scene
+            Random random = new Random();
+            int randomIndex = random.Next(episodes.Count);
+
+            // Get the random item from the list
+            seletedStory = episodes[randomIndex];
+
+            selectedEpisodeCharacters = charactersFullList
+                    .Where(c => seletedStory.CharacterIds.Contains(c.Id))
+                    .ToList();
+
+            skills = selectedEpisodeCharacters
+                                .SelectMany(c => c.Abilities) 
+                                .Distinct() 
+                                .OrderBy(c => c)
+                                .ToList(); 
+
+            startText = $"load {seletedStory.Name.Replace(" ", "_")}.obj";
+
+            await LoadIntro();            
+
+        }
+    }
+
+    public async Task GetCast()
+    {
+        if (charactersFullList.Count() == 0)
+        {
+            try
+            {
+                characters = await Http.GetFromJsonAsync<List<CharacterModel>>(baseUrl + characterUrl);
+                foreach (var character in characters)
+                {
+                    if (string.IsNullOrEmpty(character.Species))
+                    {
+                        character.Species = "Unknown";
+                    }
+                };
+                charactersFullList = characters.ToList();
+
+                // Group characters by species and store in a dictionary
+                charactersBySpecies = characters
+                    .GroupBy(c => c.Species)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                sortedSpecies = charactersBySpecies.Keys
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .OrderBy(s => s)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching data: {ex.Message}");
+            }
+        }
+        else
+        {
+            characters = charactersFullList.ToList();
+            selectedSpecies = string.Empty;
+        }
+
+        showCast = true;
+        StateHasChanged();
+    }
+
+    public async Task GetLocations()
+    {
+        locations = await Http.GetFromJsonAsync<List<LocationModel>>(baseUrl + locationUrl);
+        StateHasChanged();
+    }
+
+    public async Task GetQuotes()
+    {
+        quotes = await Http.GetFromJsonAsync<List<QuoteModel>>(baseUrl + quoteUrl);
+
+        var ids  = new List<int>();
+        foreach (var quote  in quotes)
+        {
+            quote.ExtractCharacterId();
+            if (quote.CharacterId.HasValue)
+            {
+                ids.Add(quote.CharacterId.Value);
+            };
+        }
+
+        //load character quote models
+        characterQuotes = charactersFullList 
+                    .Where(c => ids.Contains(c.Id)) 
+                    .ToList();
+
+        StateHasChanged();
+    }
+
+    public async Task GetEpisodes()
+    {
+        episodes = await Http.GetFromJsonAsync<List<EpisodeModel>>(baseUrl + episodeUrl);
+
+        var ids = new List<int>();
+        foreach (var eps in episodes)
+        {
+            eps.ExtractCharacterIds();
+        }
+
+        characterEpisodes = charactersFullList
+                    .Where(c => ids.Contains(c.Id))
+                    .ToList();
+
+        StateHasChanged();
+    }
+
+
+
+    public void FilterBySpecies(ChangeEventArgs e)
+    {
+        if (e.Value is not null && charactersBySpecies.ContainsKey(e.Value.ToString()))
+        {
+            selectedSpecies = e.Value!.ToString()!;
+            characters = charactersBySpecies[selectedSpecies];
+        }
+        else
+        {
+            characters = charactersFullList; // Show all characters if no species is selected
+        }
+    }
+
+
+
+    public async Task SelectCharacter(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            selectedOption = e.Value.ToString();
+            IEnumerable<CharacterModel> selection = selectedEpisodeCharacters.Where(a => a.Abilities.Contains(e.Value));
+
+            Random random = new Random();
+            int randomIndex = random.Next(selection.Count());
+
+            // Get the random item from the list
+            List<CharacterModel> selectionList = selection.ToList();
+            selectedCharacter = selectionList[randomIndex];
+        }
+        else
+        {
+            selectedCharacter = new(); // Show all characters if no species is selected
+        }
+
+        await LoadScene2b();
+    }
+
+    public async Task SelectDestination()
+    {
+
+    }
+    public async void SelectCrew(ChangeEventArgs e)
+    {
+        Console.WriteLine("selecting crew");
+        var selectedName = e.Value?.ToString();
+        if (string.IsNullOrEmpty(selectedName))
+        {
+            return;
+        }
+        // Find the selected character based on the name
+        var selectedCrewMember = potentialCrew
+            .FirstOrDefault(c => c.Name == selectedName);
+
+        if (selectedCrewMember != null)
+        {
+            if (!selectedCrew.Contains(selectedCrewMember))
+            {
+                selectedCrew.Add(selectedCrewMember);
+
+                potentialCrew = selectedEpisodeCharacters
+                    .Where(c => !c.Equals(selectedCharacter) && !selectedCrew.Contains(c))
+                    .ToList();
+            }
+        }
+        int lines = terminalLines.Count();
+        // terminalLines.Add(new TermialLines { Id = lines+1, Class = "system", Value = $"Added {selectedCrewMember} as crew.", Type = "text" });
+
+        // await WriteToTerminal();
+
+        StateHasChanged();
+    }
+
+    private async Task WriteToTerminal(int speed = 75)
+    {
+        terminalLines = terminalLines.OrderBy(t => t.Id).ToList();
+
+        StateHasChanged();
+
+        var lines = terminalLines.Select(term => new
+        {
+            elementId = $"line{term.Id}",
+            text = term.Value,
+            type = term.Type, 
+            imageUrl = term.ImageUrl,
+            id = term.Id,
+            options = term.Options
+        }).ToArray();
+
+        await JS.InvokeVoidAsync("typeTextSequentially", lines, speed);
+    }
+
+
+    /*** STORY SCRIPTS ***/
+    public async Task LoadIntro()
+    {
+        await Task.Delay(1000);
+
+        terminalLines = new List<TermialLines>
+        {
+             new TermialLines { Id = 1, Class = "prompt", Value = "$ echo 'Describe Project'" },
+             new TermialLines { Id = 2, Class = "system", Value = "'The Final Space' is using the Open Source API from the 'Final Space API' project." },
+             new TermialLines { Id = 3, Class = "system", Value = "I wanted to see if I could make some m_" },
+             new TermialLines { Id = 4, Class = "external", Value = "$ <Error>                    " },
+             new TermialLines { Id = 5, Class = "system", Value = "I wanted to have some fun with the API and make something outside of character cards.             " },
+             new TermialLines { Id = 6, Class = "prompt", Value = "$ echo 'Execute Gratitude'" },
+             new TermialLines { Id = 7, Class = "system", Value = "Thank you for stopping by. I hope you enjoy x" },
+             new TermialLines { Id = 8, Class = "system", Value = "                            " },
+             new TermialLines { Id = 9, Class = "btn btn-dark", OnClickFunction=LoadScene1, ButtonText = "Enter The Final Space", Type = "button" }
+        };
+
+        await WriteToTerminal(40);
+    }
+
+    public async Task LoadScene1()
+    {
+        await Task.Delay(1000);
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = -1, Class = "prompt", Value = "$ echo 'Enter The Final Space'" },
+             new TermialLines { Id = 0, Class = "system", Value = "..." },
+             new TermialLines { Id = 1, Class = "prompt", Value = "$ Fetch Missions" },
+             new TermialLines { Id = 2, Class = "system", Value = $"{episodes.Count()} Missions found" },
+             new TermialLines { Id = 3, Class = "prompt", Value = "$ echo 'Select Mission'" },
+             new TermialLines { Id = 4, Class = "system", Value = $"Selected file  #{seletedStory.Id} " },
+             new TermialLines { Id = 5, Class = "prompt", Value = $"$ {startText}" },
+             new TermialLines { Id = 6, Class = "system", Value = "Fetching data..." },
+             new TermialLines { Id = 7, Class = "system", Value = "Loading..." },
+             new TermialLines { Id = 8, Class = "system", Value = "Load complete!" },
+             new TermialLines { Id = 9, Class = "prompt", Value = "$ echo 'Start Mission'" },
+             new TermialLines { Id = 10, Class = "system", Value = "Starting Mission..." },
+             new TermialLines { Id = 11, Class = "btn btn-dark", OnClickFunction=LoadScene2, ButtonText = "Continue..", Type = "button" }
+        };
+
+        await WriteToTerminal();
+    }
+
+    private async Task LoadScene2()
+    {
+        await Task.Delay(1000);
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = $"$ Running '{seletedStory.Name}'", Type = "text" },
+            new TermialLines { Id = 2, Class = "system", Value = "Loading reference image...", Type = "text" },
+            new TermialLines { Id = 3, Class = "image", ImageUrl = seletedStory.Img_Url, Value = seletedStory.Name, Type = "image" },
+            new TermialLines { Id = 4, Class = "system", Value = "           " },
+            new TermialLines { Id = 5, Class = "prompt", Value = "$ echo 'Load Ability Selector'", Type = "text" },
+            new TermialLines { Id = 6, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCharacter, Options = skills, Type = "input" }
+        };
+
+        await WriteToTerminal();
+    }
+
+    private async Task LoadScene2b()
+    {
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = "$ Skill Selected", Type = "text" },
+            new TermialLines { Id = 2, Class = "system", Value = $"Selection: '{selectedOption}' confirmed.", Type = "text" },
+            new TermialLines { Id = 3, Class = "prompt", Value = "$ Identify Captain", Type = "text" },
+            new TermialLines { Id = 4, Class = "system", Value = "Credentials found. Loading reference image...", Type = "text" },
+            new TermialLines { Id = 5, Class = "image", ImageUrl = selectedCharacter.Img_Url, Value = selectedCharacter.Name, Type = "image" },
+            new TermialLines { Id = 6, Class = "system", Value = "             " },
+            new TermialLines { Id = 7, Class = "system", Value = $"Welcome Back {selectedCharacter.Name}", Type = "text" },
+            new TermialLines { Id = 8, Class = "prompt", Value = "$ Start Protocol", Type = "text" },
+            new TermialLines { Id = 9, Class = "btn btn-dark", OnClickFunction = LoadScene3, ButtonText = "Start Protocol 1", Type = "button" }
+        };
+
+        StateHasChanged();
+        await WriteToTerminal();
+    }
+
+    private async Task LoadScene3()
+    {
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+        //Generate Errors
+        Random random = new Random();
+        random.Next(2);
+        bool generateError = random.Next(2) == 1;
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = "$ Activate 'Protocol 1'", Type = "text" },
+            new TermialLines { Id = 2, Class = "system", Value = "Protocol 1 Active", Type = "text" },
+            new TermialLines { Id = 3, Class = "prompt", Value = "$ echo 'Locate Crew'", Type = "text" },
+            new TermialLines { Id = 4, Class = "system", Value = $"Found {selectedEpisodeCharacters.Count()-1} potential crew in archive.", Type = "text" },
+            new TermialLines { Id = 5, Class = "prompt", Value = "$ Load Profiles", Type = "text" },
+            new TermialLines { Id = 6, Class = "system", Value = "Loading Profiles...", Type = "text" }
+        };
+
+        if (generateError == true)
+        {
+            terminalLines.AddRange(new List<TermialLines>
+            {
+                new TermialLines { Id = 7, Class = "external", Value = "Error Loading Profiles...          ", Type = "text" },
+                new TermialLines { Id = 8, Class = "prompt", Value = "$ <Force Retry> Load Profiles         ", Type = "text" },
+                new TermialLines { Id = 9, Class = "system", Value = "Loading Profiles...", Type = "text" }
+            });
+        }
+
+        int lines = terminalLines.Count();
+
+        terminalLines.AddRange(new List<TermialLines>
+            {
+                new TermialLines { Id = lines+1, Class = "system", Value = "Profile Load Sucessful", Type = "text" },
+                new TermialLines { Id = lines+2, Class = "btn btn-dark", OnClickFunction = LoadScene4, ButtonText = "View Profiles", Type = "button" }
+            });
+
+
+        StateHasChanged();
+        await WriteToTerminal();
+
+    }
+
+    private async Task LoadScene4()
+    {
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = "$ echo 'View Profiles'", Type = "text" }
+        };
+
+        // select profiles (not equal to selected)
+        potentialCrew = selectedEpisodeCharacters
+        .Where(c => !c.Equals(selectedCharacter)) // Exclude the selectedCharacter
+        .ToList();
+
+
+        int lines = 1;
+
+        foreach (var chr in potentialCrew)
+        {
+            terminalLines.Add(new TermialLines { Id = lines + 1, Class = "system", Value = $"Name: {chr.Name}, Origin: {chr.Origin}, Species: {chr.Species}", Type = "text" });
+            lines++;
+        }
+
+        lines = terminalLines.Count();
+
+        terminalLines.AddRange(new List<TermialLines>
+        {
+            new TermialLines { Id = lines+1, Class = "prompt", Value = "$ echo 'Select Crew'", Type = "text" },
+            new TermialLines { Id = lines + 2, Class = "btn btn-dark", OnClickFunction = LoadScene5, ButtonText = "Load Selection", Type = "button" }
+        });
+
+
+        StateHasChanged();
+        await WriteToTerminal(35);
+    }
+
+    private async Task LoadScene5()
+    {
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+        foreach (var chr in potentialCrew)
+        {
+            characterOptions.Add(chr.Name);
+        }
+
+        // do something with crew, make input list
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = "$ Select Crew", Type = "text" },
+
+            new TermialLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCharacter, Options=characterOptions, Type = "input" },
+            
+            new TermialLines { Id = 3, Class = "btn btn-dark", OnClickFunction = LoadScene4, ButtonText = "Continue to next scene", Type = "button" }
+        };
+
+        StateHasChanged();
+        await WriteToTerminal();
+    }
+
+
+    private async Task LoadSceneTemplate()
+    {
+        terminalLines = new List<TermialLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+        terminalLines = new List<TermialLines>
+        {
+            new TermialLines { Id = 1, Class = "prompt", Value = "$ Activate 'Protocol 1'", Type = "text" },
+            new TermialLines { Id = 2, Class = "system", Value = "Protocol 1 Active", Type = "text" },
+            new TermialLines { Id = 3, Class = "btn btn-dark", OnClickFunction = LoadScene4, ButtonText = "View Profiles", Type = "button" }
+        };
+
+        StateHasChanged();
+        await WriteToTerminal();
+    }
+}
+
+

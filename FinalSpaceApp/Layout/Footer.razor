@@ -1,0 +1,10 @@
+﻿@using FinalSpaceApp.Components
+<footer>
+    @if (showCredits){
+        <Credits/>
+    }
+</footer>
+
+@code {
+    private bool showCredits { get; set; } = true;
+}

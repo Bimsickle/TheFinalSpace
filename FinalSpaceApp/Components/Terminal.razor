@@ -1,0 +1,58 @@
+﻿<div class="terminal">
+    <div class="terminal-header">A.V.A 2</div>
+    <div class="terminal-body">
+        @foreach (var term in terminalLines)
+        {
+            @switch (term.Type)
+            {
+                case "text":
+                    <div id=@($"line{term.Id}") class=@term.Class></div>
+                    ;
+                    break;
+
+                case "image":
+                    <div class="image-container" id=@($"line{term.Id}")>
+                        <img id=@($"img{term.Id}") src="" alt="">
+                        <div class="checkerboard"></div>
+                    </div>
+                    ;
+                    break;
+
+                case "input":
+                    <div id=@($"line{term.Id}") class=@term.Class style="display:none;">
+                        <select value=@selectedOption @onchange=term.OnChangeFunction class="form-select">
+                            <option value="">Select from list...</option>
+                            @foreach (var option in term.Options)
+                            {
+                                <option value="@option">@option</option>
+                            }
+                        </select>
+                    </div>
+                    ;
+                    break;
+
+                case "button":
+                    <div id=@($"line{term.Id}") style="display:none;">
+                        <button @onclick=term.OnClickFunction type="button" class=@term.Class>@term.ButtonText</button>
+                    </div>
+                    ;
+                    break;
+
+                default:
+                    <div id=@($"line{term.Id}") class=@term.Class></div>
+                    ;
+                    break;
+            }
+        }
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public List<TermialLines> terminalLines { get; set; }
+    
+    [Parameter]
+    public string selectedOption { get; set; } 
+}

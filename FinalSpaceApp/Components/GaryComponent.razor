@@ -1,0 +1,19 @@
+﻿
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div id="gary-image-container">
+    <img id="gary-image" src="/mg/gary/gary01.png" alt="Gary Image" />
+</div>
+
+@code {
+    private const int ImageCount = 7; // Total number of images
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("startImageAnimation", ImageCount);
+        }
+    }
+}

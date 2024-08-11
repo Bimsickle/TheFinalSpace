@@ -1,0 +1,15 @@
+﻿<header class="hero-image fs-head ">
+
+    <h1 class="press-start-2p-regular title-animate">The Final Space</h1>
+    <p class="subtitle">Bimsickle &#64;@year</p>
+</header>
+
+
+@code {
+    private int year { get; set; } = 2024;
+
+    protected override async Task OnInitializedAsync()
+    {
+        year = DateTime.Now.Year;
+    }
+}
