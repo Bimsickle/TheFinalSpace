@@ -5,7 +5,6 @@
 @inject IJSRuntime JS
 
 <PageTitle>The Final Space</PageTitle>
-<title>The Final Space</title>
 
 <Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" />
 
@@ -242,13 +241,10 @@
             if (!selectedCrew.Contains(selectedCrewMember))
             {
                 selectedCrew.Add(selectedCrewMember);
-                Console.WriteLine(selectedCrew.Count());
 
-                Console.WriteLine(potentialCrew.Count());
                 potentialCrew = selectedEpisodeCharacters
                     .Where(c => !c.Equals(selectedCharacter) && !selectedCrew.Contains(c))
                     .ToList();
-                Console.WriteLine(potentialCrew.Count());
             }
         }
 
@@ -260,7 +256,6 @@
         {
             characterOptions.Add(chr.Name);
         }
-        Console.WriteLine(characterOptions.Count());
 
         TerminalLines newOpts = new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction = SelectCrew, Options = characterOptions, Type = "input" };
 
@@ -274,16 +269,50 @@
         termLines.Add(crew);
         termLines.Add(newOpts);
         terminalLines.Add(crew);
+
+        // select random quote, check if not
+        QuoteModel quote = SelectRandomQuote();
+        CharacterModel quotechar = characters!.Where(c => c.Id == quote.CharacterId)!.FirstOrDefault();
+        if (selectedCrew.Count() == 3)
+        {
+            lines = terminalLines.Count();
+            List<TerminalLines> quotelines = new List<TerminalLines>
+            {
+                new TerminalLines { Id = lines + 1, Class = "external", Value = "$ Incoming Message Detected", Type = "text" },
+                new TerminalLines { Id = lines + 2, Class = "prompt", Value = "$ echo 'Play Message'", Type = "text" },
+                new TerminalLines { Id = lines + 3, Class = "internal", Value = $"$ <{quotechar.Name}>  {quote.Quote}", Type = "text" },
+                new TerminalLines { Id = lines + 4, Class = "btn btn-dark", OnClickFunction = LoadScene6, ButtonText = "Start Engines", Type = "button" }
+            };
+
+            termLines.AddRange(quotelines);
+            terminalLines.AddRange(quotelines);
+        }
         StateHasChanged();
 
         // termLines.Add(new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption = selectedOption, OnChangeFunction = SelectCrew, Options = characterOptions, Type = "input" });
-        
-        
+
+
         await Task.Delay(500);
 
         await WriteAdditionsToTerminal(termLines);
         StateHasChanged();
 
+    }
+
+    private QuoteModel SelectRandomQuote()
+    {
+        //filter quotes based on not in crew
+        var ids = selectedCrew.Select(t => t.Id).ToList();
+        List<QuoteModel> quotelist = quotes
+                    .Where(c => !c.CharacterId.Equals(selectedCharacter.Id) && !ids.Contains(c.Id))
+                    .ToList();
+
+        Random random = new Random();
+        int randomIndex = random.Next(quotelist.Count);
+
+        // Get the random item from the list
+        var quote = quotelist[randomIndex];
+        return quote;
     }
 
     private async Task WriteToTerminal(int speed = 60)
@@ -516,14 +545,30 @@
         terminalLines = new List<TerminalLines>
         {
             new TerminalLines { Id = 1, Class = "prompt", Value = "$ Select Crew", Type = "text" },
-            new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCrew, Options=characterOptions, Type = "input" },
-            new TerminalLines { Id = 3, Class = "btn btn-dark", OnClickFunction = LoadScene1, ButtonText = "End of Project Development (Restart)...", Type = "button" }
+            new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCrew, Options=characterOptions, Type = "input" }
+            
         };
 
         StateHasChanged();
         await WriteToTerminal();
     }
 
+    private async Task LoadScene6()
+    {
+        terminalLines = new List<TerminalLines>();
+        StateHasChanged();
+        await Task.Delay(1000);
+
+        terminalLines = new List<TerminalLines>
+        {
+            new TerminalLines { Id = 1, Class = "prompt", Value = "$ Activate 'Protocol 1'", Type = "text" },
+            new TerminalLines { Id = 2, Class = "system", Value = "Protocol 1 Active", Type = "text" },
+            new TerminalLines { Id = 3, Class = "btn btn-dark", OnClickFunction = LoadScene1, ButtonText = "End of Project Development (Restart)...", Type = "button" }
+        };
+
+        StateHasChanged();
+        await WriteToTerminal();
+    }
 
     private async Task LoadSceneTemplate()
     {
