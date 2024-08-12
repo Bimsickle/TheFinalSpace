@@ -278,9 +278,12 @@
 
         // termLines.Add(new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption = selectedOption, OnChangeFunction = SelectCrew, Options = characterOptions, Type = "input" });
         
-        await WriteToTerminal();
+        
+        await Task.Delay(500);
 
+        await WriteAdditionsToTerminal(termLines);
         StateHasChanged();
+
     }
 
     private async Task WriteToTerminal(int speed = 60)
