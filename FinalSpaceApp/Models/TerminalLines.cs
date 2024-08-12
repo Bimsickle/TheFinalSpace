@@ -2,7 +2,7 @@
 
 namespace FinalSpaceApp.Models
 {
-    public class TermialLines
+    public class TerminalLines
     {
         public int Id { get; set; } = 0;
         public string Class { get; set; } = "system";
