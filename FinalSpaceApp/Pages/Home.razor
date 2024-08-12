@@ -4,8 +4,8 @@
 @using System.Net.Http.Json
 @inject IJSRuntime JS
 
-
 <PageTitle>The Final Space</PageTitle>
+<title>The Final Space</title>
 
 <Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" />
 
@@ -222,7 +222,8 @@
     {
 
     }
-    public async void SelectCrew(ChangeEventArgs e)
+
+    public async Task SelectCrew(ChangeEventArgs e)
     {
         Console.WriteLine("selecting crew");
         var selectedName = e.Value?.ToString();
@@ -246,14 +247,14 @@
             }
         }
         int lines = terminalLines.Count();
-        // terminalLines.Add(new TermialLines { Id = lines+1, Class = "system", Value = $"Added {selectedCrewMember} as crew.", Type = "text" });
+        terminalLines.Add(new TermialLines { Id = lines+1, Class = "system", Value = $"Added {selectedCrewMember} as crew.", Type = "text" });
 
-        // await WriteToTerminal();
+        await WriteToTerminal();
 
         StateHasChanged();
     }
 
-    private async Task WriteToTerminal(int speed = 75)
+    private async Task WriteToTerminal(int speed = 60)
     {
         terminalLines = terminalLines.OrderBy(t => t.Id).ToList();
 
@@ -463,8 +464,9 @@
         {
             new TermialLines { Id = 1, Class = "prompt", Value = "$ Select Crew", Type = "text" },
 
-            new TermialLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCharacter, Options=characterOptions, Type = "input" },
-            
+            new TermialLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCrew, Options=characterOptions, Type = "input" },
+
+
             new TermialLines { Id = 3, Class = "btn btn-dark", OnClickFunction = LoadScene4, ButtonText = "Continue to next scene", Type = "button" }
         };
 
