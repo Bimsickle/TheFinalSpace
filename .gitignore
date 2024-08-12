@@ -1,6 +1,3 @@
-/BookRadarAPI/appsettings.Development.json
-/BookRadarDatabase/BookRadarDatabase.dbmdl
-/BookRadarDatabase/BookRadarDatabase.jfm
 .vs/
 **/[Dd]ebug/
 ## Ignore Visual Studio temporary files, build results, and

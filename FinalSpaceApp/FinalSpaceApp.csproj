@@ -1,9 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	  
+	<BlazorWebAssemblyEnableLinker>true</BlazorWebAssemblyEnableLinker>
+	<EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
   </PropertyGroup>
 
   <ItemGroup>
