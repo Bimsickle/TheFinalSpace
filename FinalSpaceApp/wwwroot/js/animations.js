@@ -9,7 +9,7 @@ window.startImageAnimation = (imageCount) => {
         imageElement.src = `/img/gary/gary` + String(imageIndex).padStart(2, '0') + `.png`;
     }, 150);
 };
-
+window.startImageAnimation(7); 
 
 
 function typeText(elementId, text, speed) {
