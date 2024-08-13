@@ -119,3 +119,20 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+/* The hero image */
+.hero-image {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(https://finalspaceapi.com/api/location/image/final_space.jpg);
+    height: 20vh;
+    overflow: hidden;
+    position: relative;
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: "Press Start 2P", system-ui;
+    font-style: normal;
+    color: darkgrey;
+    font-weight: 400;
+    text-align: center;
+    align-content: center;
+}
+
