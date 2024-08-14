@@ -6,7 +6,7 @@
 
 <PageTitle>The Final Space</PageTitle>
 
-<Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" />
+@* <Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" /> *@
 
 
 @code {
@@ -318,7 +318,7 @@
                 new TerminalLines { Id = lines + 2, Class = "prompt", Value = "$ echo 'Play Message'", Type = "text" },
                 new TerminalLines { Id = lines + 3, Class = "internal", Value = $"$ <{quoteNonCrew.Name}>  {quoteSelected.Quote}", Type = "text" },
                 new TerminalLines { Id = lines + 4, Class = "prompt", Value = $"$echo 'Start Engine'", Type = "text" },
-                new TerminalLines { Id = lines + 5, Class = "btn btn-dark", OnClickFunction = LoadScene6, ButtonText = "Start Engines", Type = "button" }
+                new TerminalLines { Id = lines + 5, Class = "btn btn-dark", OnClickFunction = LoadScene6, ButtonText = "Start 'Galaxy One'", Type = "button" }
             };
             terminalLines[index] = new TerminalLines { Id = index, Class = "system", Value = "     ", Type = "text" };
             termLines.Add(new TerminalLines { Id = index, Class = "system", Value = "     ", Type = "text" });
@@ -341,21 +341,21 @@
 
     }
 
-    private QuoteModel SelectRandomQuote()
-    {
-        //filter quotes based on not in crew
-        var ids = selectedCrew.Select(t => t.Id).ToList();
-        List<QuoteModel> quotelist = quotes
-                    .Where(c => !c.CharacterId.Equals(selectedCharacter.Id) && !ids.Contains(c.Id))
-                    .ToList();
+    // private QuoteModel SelectRandomQuote()
+    // {
+    //     //filter quotes based on not in crew
+    //     var ids = selectedCrew.Select(t => t.Id).ToList();
+    //     List<QuoteModel> quotelist = quotes
+    //                 .Where(c => !c.CharacterId.Equals(selectedCharacter.Id) && !ids.Contains(c.Id))
+    //                 .ToList();
 
-        Random random = new Random();
-        int randomIndex = random.Next(quotelist.Count);
+    //     Random random = new Random();
+    //     int randomIndex = random.Next(quotelist.Count);
 
-        // Get the random item from the list
-        var quote = quotelist[randomIndex];
-        return quote;
-    }
+    //     // Get the random item from the list
+    //     var quote = quotelist[randomIndex];
+    //     return quote;
+    // }
 
     private async Task WriteToTerminal(int speed = 60) //60
     {
