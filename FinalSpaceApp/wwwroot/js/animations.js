@@ -1,35 +1,35 @@
 
 //Animate through gary images for sprite
-window.startImageAnimation = (imageCount) => {
-    let imageIndex = 1;
-    const imageElement = document.getElementById('gary-image');
+//window.startImageAnimation = (imageCount) => {
+//    let imageIndex = 1;
+//    const imageElement = document.getElementById('gary-image');
 
-    setInterval(() => {
-        imageIndex = (imageIndex % imageCount) + 1;
-        imageElement.src = `/img/gary/gary` + String(imageIndex).padStart(2, '0') + `.png`;
-    }, 150);
-};
-window.startImageAnimation(7); 
+//    setInterval(() => {
+//        imageIndex = (imageIndex % imageCount) + 1;
+//        imageElement.src = `/img/gary/gary` + String(imageIndex).padStart(2, '0') + `.png`;
+//    }, 150);
+//};
+/*window.startImageAnimation(7); */
 
 
-function typeText(elementId, text, speed) {
-    let i = 0;
-    const element = document.getElementById(elementId);
-    element.innerHTML = ""; // Clear existing text
+//function typeText(elementId, text, speed) {
+//    let i = 0;
+//    const element = document.getElementById(elementId);
+//    element.innerHTML = ""; // Clear existing text
 
-    function typeCharacter() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typeCharacter, speed);
-        }
-    }
-    typeCharacter();
-}
+//    function typeCharacter() {
+//        if (i < text.length) {
+//            element.innerHTML += text.charAt(i);
+//            i++;
+//            setTimeout(typeCharacter, speed);
+//        }
+//    }
+//    typeCharacter();
+//}
 
-function clearText(elementId) {
-    document.getElementById(elementId).innerHTML = ""; // Clear existing text
-}
+//function clearText(elementId) {
+//    document.getElementById(elementId).innerHTML = ""; // Clear existing text
+//}
 function typeTextSequentially(lines, interval) {
     let index = 0;
 

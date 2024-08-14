@@ -12,5 +12,7 @@
         public List<string>  Alias { get; set; } = new List<string>();
         public List<string> Abilities { get; set; } = new List<string>();
         public string Img_Url { get; set; } = string.Empty;
+
+        public List<QuoteModel>? Quotes { get; set; } = new List<QuoteModel>();
     }
 }

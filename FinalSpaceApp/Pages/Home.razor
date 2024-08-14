@@ -9,36 +9,32 @@
 <Terminal terminalLines="@terminalLines" selectedOption = "@selectedOption" />
 
 
-<div class="waiting">
-  @*  <GaryComponent/> *@
-</div>
-
-
-
 @code {
     [Inject]
     private HttpClient? Http { get; set; }
 
     private readonly string baseUrl = "https://finalspaceapi.com/api/v0/";
-    private bool showCast { get; set; } = false;
+    // private bool showCast { get; set; } = false;
 
     private readonly string characterUrl = "character";
     private readonly string locationUrl = "location";
     private readonly string quoteUrl = "quote";
     private readonly string episodeUrl = "episode";
+    private bool generateError { get; set; } = false;
 
     private List<CharacterModel> characters { get; set; } = new();
     private List<CharacterModel> charactersFullList { get; set; } = new();
+    private List<CharacterModel> charactersNonCrew { get; set; } = new();
     private Dictionary<string, List<CharacterModel>> charactersBySpecies { get; set; } = new();
-    private List<string> sortedSpecies { get; set; } = new();
-    private string selectedSpecies { get; set; } = string.Empty;
+    // private List<string> sortedSpecies { get; set; } = new();
+    // private string selectedSpecies { get; set; } = string.Empty;
 
     private List<LocationModel> locations { get; set; } = new();
     private string selectedLocation { get; set; } = string.Empty;
 
     private List<QuoteModel> quotes { get; set; } = new();
-    private string selectedQuote { get; set; } = string.Empty;
-    private List<CharacterModel> characterQuotes { get; set; } = new();
+    // private string selectedQuote { get; set; } = string.Empty;
+    // private List<CharacterModel> characterQuotes { get; set; } = new();
 
     private List<EpisodeModel> episodes { get; set; } = new();
     // private string selectedEpisode { get; set; } = string.Empty;
@@ -48,15 +44,17 @@
     private List<CharacterModel> selectedEpisodeCharacters { get; set; } = new();
     private string startText { get; set; } = string.Empty;
     private CharacterModel selectedCharacter { get; set; } = new();
+
     private List<string> skills { get; set; } = new();
     // private string selectedSkill { get; set; } = string.Empty;
-    private string selectedOption { get; set; } = string.Empty;
 
     private List<TerminalLines> terminalLines { get; set; } = new();
+    private string selectedOption { get; set; } = string.Empty;
 
     private List<CharacterModel> selectedCrew { get; set; } = new();
     private List<CharacterModel> potentialCrew = new();
-    private List<string> characterOptions { get; set; } = new();
+    private List<string> characterOptions { get; set; } = new(); // Characters in Episode available for crew selection
+
     // private string selectedCrewOption { get; set; } = string.Empty;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -80,14 +78,14 @@
                     .ToList();
 
             skills = selectedEpisodeCharacters
-                                .SelectMany(c => c.Abilities) 
-                                .Distinct() 
+                                .SelectMany(c => c.Abilities)
+                                .Distinct()
                                 .OrderBy(c => c)
-                                .ToList(); 
+                                .ToList();
 
             startText = $"load {seletedStory.Name.Replace(" ", "_")}.obj";
 
-            await LoadIntro();  
+            await LoadIntro();
         }
     }
 
@@ -112,10 +110,11 @@
                     .GroupBy(c => c.Species)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
-                sortedSpecies = charactersBySpecies.Keys
-                    .Where(s => !string.IsNullOrEmpty(s))
-                    .OrderBy(s => s)
-                    .ToList();
+
+                // sortedSpecies = charactersBySpecies.Keys
+                //     .Where(s => !string.IsNullOrEmpty(s))
+                //     .OrderBy(s => s)
+                //     .ToList();
             }
             catch (Exception ex)
             {
@@ -125,10 +124,11 @@
         else
         {
             characters = charactersFullList.ToList();
-            selectedSpecies = string.Empty;
-        }
 
-        showCast = true;
+            // selectedSpecies = string.Empty;
+        }
+        charactersNonCrew = charactersFullList.ToList();
+        // showCast = true;
         StateHasChanged();
     }
 
@@ -142,20 +142,36 @@
     {
         quotes = await Http.GetFromJsonAsync<List<QuoteModel>>(baseUrl + quoteUrl);
 
-        var ids  = new List<int>();
-        foreach (var quote  in quotes)
+        var ids = new List<int>();
+        foreach (var quote in quotes)
         {
             quote.ExtractCharacterId();
             if (quote.CharacterId.HasValue)
             {
                 ids.Add(quote.CharacterId.Value);
+                var selChar = characters.Where(c => c.Id == quote.CharacterId).FirstOrDefault();
+                if (selChar != null)
+                {
+                    if (selChar.Name == quote.By)
+                    {
+                        selChar?.Quotes!.Add(quote);
+                    }
+                    else
+                    {
+                        selChar = characters.Where(c => c.Name == quote.By).FirstOrDefault();
+                        if (selChar != null)
+                        {
+                            selChar?.Quotes!.Add(quote);
+                        }
+                    }
+                }
             };
         }
 
-        //load character quote models
-        characterQuotes = charactersFullList 
-                    .Where(c => ids.Contains(c.Id)) 
-                    .ToList();
+        // //load character quote models
+        // characterQuotes = charactersFullList
+        //             .Where(c => ids.Contains(c.Id))
+        //             .ToList();
 
         StateHasChanged();
     }
@@ -179,18 +195,18 @@
 
 
 
-    public void FilterBySpecies(ChangeEventArgs e)
-    {
-        if (e.Value is not null && charactersBySpecies.ContainsKey(e.Value.ToString()))
-        {
-            selectedSpecies = e.Value!.ToString()!;
-            characters = charactersBySpecies[selectedSpecies];
-        }
-        else
-        {
-            characters = charactersFullList; // Show all characters if no species is selected
-        }
-    }
+    // public void FilterBySpecies(ChangeEventArgs e)
+    // {
+    //     if (e.Value is not null && charactersBySpecies.ContainsKey(e.Value.ToString()))
+    //     {
+    //         selectedSpecies = e.Value!.ToString()!;
+    //         characters = charactersBySpecies[selectedSpecies];
+    //     }
+    //     else
+    //     {
+    //         characters = charactersFullList; // Show all characters if no species is selected
+    //     }
+    // }
 
 
 
@@ -208,6 +224,8 @@
             List<CharacterModel> selectionList = selection.ToList();
             selectedCharacter = selectionList[randomIndex];
 
+            //remove from list
+            charactersNonCrew.Remove(selectedCharacter);
         }
         else
         {
@@ -240,6 +258,8 @@
             if (!selectedCrew.Contains(selectedCrewMember))
             {
                 selectedCrew.Add(selectedCrewMember);
+                //remove from list
+                charactersNonCrew.Remove(selectedCrewMember);
 
                 potentialCrew = selectedEpisodeCharacters
                     .Where(c => !c.Equals(selectedCharacter) && !selectedCrew.Contains(c))
@@ -256,7 +276,7 @@
             characterOptions.Add(chr.Name);
         }
 
-        TerminalLines newOpts = new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=string.Empty, OnChangeFunction = SelectCrew, Options = characterOptions, Type = "input" };
+        TerminalLines newOpts = new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption = string.Empty, OnChangeFunction = SelectCrew, Options = characterOptions, Type = "input" };
 
         int index = terminalLines.FindIndex(t => t.Id == 2);
         terminalLines[index] = newOpts;
@@ -268,22 +288,35 @@
         TerminalLines crew = new TerminalLines { Id = lines + 1, Class = "system", Value = $"Added {selectedCrewMember.Name} as crew.", Type = "text" };
 
         termLines.Add(crew);
-        
+
         terminalLines.Add(crew);
 
         // select random quote, check if not
-        QuoteModel quote = SelectRandomQuote();
-        CharacterModel quotechar = characters!.Where(c => c.Id == quote.CharacterId)!.FirstOrDefault();
+        // QuoteModel quote = SelectRandomQuote();
+        // CharacterModel quotechar = characters!.Where(c => c.Id == quote.CharacterId)!.FirstOrDefault();
 
 
-        if (selectedCrew.Count() == 3)
+        if (selectedCrew.Count() == 3) // max crew size
         {
+            //  get non-crew with quotes
+            var filteredCharacters = charactersNonCrew.Where(c => c.Quotes.Count() > 0).ToList();
+            Random random = new Random();
+            int randomIndex = random.Next(filteredCharacters.Count());
+
+            // Get the random item from the list
+            var quoteNonCrew = filteredCharacters[randomIndex];
+
+            random = new Random();
+            randomIndex = random.Next(quoteNonCrew!.Quotes.Count());
+            var quoteSelected = quoteNonCrew.Quotes[randomIndex];
+
+
             lines = terminalLines.Count();
             List<TerminalLines> quotelines = new List<TerminalLines>
             {
                 new TerminalLines { Id = lines + 1, Class = "external", Value = "$ Incoming Message Detected", Type = "text" },
                 new TerminalLines { Id = lines + 2, Class = "prompt", Value = "$ echo 'Play Message'", Type = "text" },
-                new TerminalLines { Id = lines + 3, Class = "internal", Value = $"$ <{quotechar.Name}>  {quote.Quote}", Type = "text" },
+                new TerminalLines { Id = lines + 3, Class = "internal", Value = $"$ <{quoteNonCrew.Name}>  {quoteSelected.Quote}", Type = "text" },
                 new TerminalLines { Id = lines + 4, Class = "prompt", Value = $"$echo 'Start Engine'", Type = "text" },
                 new TerminalLines { Id = lines + 5, Class = "btn btn-dark", OnClickFunction = LoadScene6, ButtonText = "Start Engines", Type = "button" }
             };
@@ -324,7 +357,7 @@
         return quote;
     }
 
-    private async Task WriteToTerminal(int speed = 60)
+    private async Task WriteToTerminal(int speed = 60) //60
     {
         terminalLines = terminalLines.OrderBy(t => t.Id).ToList();
 
@@ -334,7 +367,7 @@
         {
             elementId = $"line{term.Id}",
             text = term.Value,
-            type = term.Type, 
+            type = term.Type,
             imageUrl = term.ImageUrl,
             id = term.Id,
             options = term.Options
@@ -370,6 +403,8 @@
         await Task.Delay(500);
         selectedCrew = new();
         potentialCrew = new();
+        charactersNonCrew = charactersFullList.ToList();
+
         //Set scene
         Random random = new Random();
         int randomIndex = random.Next(episodes.Count);
@@ -415,6 +450,12 @@
     public async Task LoadScene1()
     {
         await Task.Delay(1000);
+
+        //Generate Errors
+        Random random = new Random();
+        random.Next(2);
+        generateError = random.Next(2) == 1;
+
         terminalLines = new List<TerminalLines>();
         StateHasChanged();
 
@@ -451,7 +492,8 @@
             new TerminalLines { Id = 3, Class = "image", ImageUrl = seletedStory.Img_Url, Value = seletedStory.Name, Type = "image" },
             new TerminalLines { Id = 4, Class = "system", Value = "           " },
             new TerminalLines { Id = 5, Class = "prompt", Value = "$ echo 'Load Ability Selector'", Type = "text" },
-            new TerminalLines { Id = 6, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCharacter, Options = skills, Type = "input" }
+            new TerminalLines { Id = 6, Class = "system", Value = "Select your best ability as Captain...", Type = "text" },
+            new TerminalLines { Id = 7, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCharacter, Options = skills, Type = "input" }
         };
 
         await WriteToTerminal();
@@ -489,10 +531,6 @@
         StateHasChanged();
         await Task.Delay(1000);
 
-        //Generate Errors
-        Random random = new Random();
-        random.Next(2);
-        bool generateError = random.Next(2) == 1;
 
         terminalLines = new List<TerminalLines>
         {
@@ -582,7 +620,7 @@
         terminalLines = new List<TerminalLines>
         {
             new TerminalLines { Id = 1, Class = "prompt", Value = "$ Select Crew", Type = "text" },
-            new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCrew, Options=characterOptions, Type = "input" }            
+            new TerminalLines { Id = 2, Class = "input input-group mb-3", SelectedOption=selectedOption, OnChangeFunction=SelectCrew, Options=characterOptions, Type = "input" }
         };
 
         StateHasChanged();
