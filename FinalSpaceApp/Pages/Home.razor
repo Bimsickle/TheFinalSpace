@@ -239,6 +239,8 @@
 
     public async Task SelectDestination(Func<Task> scene)
     {
+        /* Set destination & run next scene passed in */
+
         await Task.Delay(1000);
         terminalLines = new List<TerminalLines>();
         StateHasChanged();
@@ -255,14 +257,14 @@
         {
             terminalLines = new List<TerminalLines>
                 {
-                     new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Display Itinerary'" },
-                     new TerminalLines { Id = 2, Class = "system", Value = $"Current Location: {currentLocation.Name}" },
-                     new TerminalLines { Id = 3, Class = "system", Value = $"Destination: {destination.Name}" },
-                     new TerminalLines { Id = 4, Class = "prompt", Value = "$ echo 'Show Trip Duration'" },
-                     new TerminalLines { Id = 5, Class = "system", Value = $"Journey Length: 9^%4%3..# L9%g^t Y3a75" },
+                    new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Display Itinerary'" },
+                    new TerminalLines { Id = 2, Class = "system", Value = $"Current Location: {currentLocation.Name}" },
+                    new TerminalLines { Id = 3, Class = "system", Value = $"Destination: {destination.Name}" },
+                    new TerminalLines { Id = 4, Class = "prompt", Value = "$ echo 'Show Trip Duration'" },
+                    new TerminalLines { Id = 5, Class = "system", Value = $"Journey Length: 9^%4%3..# L9%g^t Y3a75" },
                     new TerminalLines { Id = 6, Class = "external", Value = "$ <Error>          " },
-                     new TerminalLines { Id = 7, Class = "promt", Value = "$ <Force Retry> 'Calculate Trip Duration'" },
-                     new TerminalLines { Id = 7, Class = "sustem", Value = $"Journey Length: {lightYears} Light Years" },
+                    new TerminalLines { Id = 7, Class = "promt", Value = "$ <Force Retry> 'Calculate Trip Duration'" },
+                    new TerminalLines { Id = 7, Class = "sustem", Value = $"Journey Length: {lightYears} Light Years" },
                     new TerminalLines { Id = 9, Class = "btn btn-dark", OnClickFunction=scene, ButtonText = "Begin Journey", Type = "button" }
                 };
         }
@@ -270,27 +272,14 @@
         {
             terminalLines = new List<TerminalLines>
                 {
-                     new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Display Itinerary'" },
-                     new TerminalLines { Id = 2, Class = "system", Value = $"Current Location: {currentLocation.Name}" },
-                     new TerminalLines { Id = 3, Class = "system", Value = $"Destination: {destination.Name}" },
-                     new TerminalLines { Id = 4, Class = "prompt", Value = "$ echo 'Show Trip Duration'" },
-                     new TerminalLines { Id = 5, Class = "system", Value = $"Journey Length: {lightYears} Light Years" },
+                    new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Display Itinerary'" },
+                    new TerminalLines { Id = 2, Class = "system", Value = $"Current Location: {currentLocation.Name}" },
+                    new TerminalLines { Id = 3, Class = "system", Value = $"Destination: {destination.Name}" },
+                    new TerminalLines { Id = 4, Class = "prompt", Value = "$ echo 'Show Trip Duration'" },
+                    new TerminalLines { Id = 5, Class = "system", Value = $"Journey Length: {lightYears} Light Years" },
                     new TerminalLines { Id = 6, Class = "btn btn-dark", OnClickFunction=scene, ButtonText = "Begin Journey", Type = "button" }
                 };
         }
-
-        // terminalLines = new List<TerminalLines>
-        // {
-        //      new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Display Itinerary'" },
-        //      new TerminalLines { Id = 2, Class = "system", Value = $"Current Location: {currentLocation.Name}" },
-        //      new TerminalLines { Id = 3, Class = "system", Value = $"Destination: {destination.Name}" },
-        //      new TerminalLines { Id = 4, Class = "external", Value = "$ <Error>                    " },
-        //      new TerminalLines { Id = 5, Class = "system", Value = "I wanted to have some fun with the API and make something outside of character cards.             " },
-        //      new TerminalLines { Id = 6, Class = "prompt", Value = "$ echo 'Execute Gratitude'" },
-        //      new TerminalLines { Id = 7, Class = "system", Value = "Thank you for stopping by. I hope you enjoy x" },
-        //      new TerminalLines { Id = 8, Class = "system", Value = "                            " },
-        //      new TerminalLines { Id = 9, Class = "btn btn-dark", OnClickFunction=LoadScene1, ButtonText = "Enter 'The Final Space'", Type = "button" }
-        // };
 
         await WriteToTerminal();
 
@@ -347,10 +336,6 @@
         termLines.Add(crew);
 
         terminalLines.Add(crew);
-
-        // select random quote, check if not
-        // QuoteModel quote = SelectRandomQuote();
-        // CharacterModel quotechar = characters!.Where(c => c.Id == quote.CharacterId)!.FirstOrDefault();
 
 
         if (selectedCrew.Count() == 3) // max crew size
@@ -430,8 +415,9 @@
         await JS.InvokeVoidAsync("typeTextSequentially", lines, speed);
     }
 
-    private async Task WriteAdditionsToTerminal(List<TerminalLines> termLines, int speed = 60)
+    private async Task WriteAdditionsToTerminal(List<TerminalLines> termLines, int speed = 50)
     {
+        /* do not reset the Termonal, just add lines to the end */
         termLines = termLines.OrderBy(t => t.Id).ToList();
 
         StateHasChanged();
@@ -711,9 +697,11 @@
 
         terminalLines = new List<TerminalLines>
         {
-            new TerminalLines { Id = 1, Class = "prompt", Value = "$ Activate 'Protocol 1'", Type = "text" },
-            new TerminalLines { Id = 2, Class = "system", Value = "Protocol 1 Active", Type = "text" },
-            new TerminalLines { Id = 3, Class = "btn btn-dark", OnClickFunction = SetScene, ButtonText = "End of Project Development (Restart)...", Type = "button" }
+            new TerminalLines { Id = 1, Class = "prompt", Value = "$ echo 'Finish Journey", Type = "text" },
+            new TerminalLines { Id = 2, Class = "system", Value = "You have reached the end of 'The Final Space'.", Type = "text" },
+            new TerminalLines { Id = 3, Class = "prompt", Value = "$ echo 'Execute Gratitude", Type = "text" },
+            new TerminalLines { Id = 4, Class = "system", Value = "Thank you for visiting The Final Space. Please come back later to finish the story x", Type = "text" },
+            new TerminalLines { Id = 5, Class = "btn btn-dark", OnClickFunction = SetScene, ButtonText = "End of Project Development (Restart)...", Type = "button" }
         };
 
         StateHasChanged();

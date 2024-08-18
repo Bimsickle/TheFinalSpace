@@ -12,25 +12,11 @@
 /*window.startImageAnimation(7); */
 
 
-//function typeText(elementId, text, speed) {
-//    let i = 0;
-//    const element = document.getElementById(elementId);
-//    element.innerHTML = ""; // Clear existing text
-
-//    function typeCharacter() {
-//        if (i < text.length) {
-//            element.innerHTML += text.charAt(i);
-//            i++;
-//            setTimeout(typeCharacter, speed);
-//        }
-//    }
-//    typeCharacter();
-//}
-
-//function clearText(elementId) {
-//    document.getElementById(elementId).innerHTML = ""; // Clear existing text
-//}
 function typeTextSequentially(lines, interval) {
+    if (!document.getElementById("line1")) {
+        return; // Exit if element not found
+    }
+
     let index = 0;
 
     function typeLine(line) {
@@ -97,3 +83,7 @@ function typeTextSequentially(lines, interval) {
     }
 }
 
+
+function openInNewTab(url) {
+    window.open(url, '_blank');
+}

@@ -1,0 +1,77 @@
+﻿@page "/Credits"
+
+@inject IJSRuntime JS
+@inject NavigationManager _navManager
+
+<PageTitle>The Final Space</PageTitle>
+
+<Terminal terminalLines="@terminalLinesCredits" selectedOption = "@selectedOption" />
+
+@code {
+    [Inject]
+    private HttpClient? Http { get; set; }
+    private List<TerminalLines> terminalLinesCredits { get; set; } = new();
+    private string selectedOption { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        terminalLinesCredits = new List<TerminalLines>();
+        await Task.Delay(1000);
+        StateHasChanged();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+          {
+            terminalLinesCredits = new List<TerminalLines>();
+            StateHasChanged();
+            await Task.Delay(500);
+
+            terminalLinesCredits = new List<TerminalLines>
+                {
+                    new TerminalLines { Id = 1, Class = "prompt", Value = "Copyright Statement" },
+                    new TerminalLines { Id = 12, Class = "system", Value = $"This project uses the open source 'Final Space API' under the BSD license. Their full Copyright statement can be found on thier site." },
+                    new TerminalLines { Id = 13, Class = "btn btn-dark", OnClickFunction=NavigateToFinalSpaceApi, ButtonText = "View 'Final Space API' project Copyright Statement.", Type = "button" },
+                    new TerminalLines { Id = 14, Class = "system", Value = $"I do not own the rights to any material provided in this project and hold no affiliation with the creators of the show." },
+                    new TerminalLines { Id = 16, Class = "system", Value = $"                               " },
+                    new TerminalLines { Id = 17, Class = "btn btn-dark", OnClickFunction=ReturnHome, ButtonText = "Return to 'The Final Space'", Type = "button" }
+
+                };
+
+            
+            StateHasChanged();
+            await Task.Delay(500);
+            
+            await WriteToTerminal();
+        }
+    }
+    private async Task ReturnHome()
+    {
+        _navManager.NavigateTo("/");
+    }
+
+    private async Task NavigateToFinalSpaceApi()
+    {
+        var url = "https://finalspaceapi.com/docs/about/#copyright";
+        await JS.InvokeVoidAsync("openInNewTab", url);
+    }
+
+    private async Task WriteToTerminal(int speed = 30) 
+    {
+        terminalLinesCredits = terminalLinesCredits.OrderBy(t => t.Id).ToList();
+
+        StateHasChanged();
+        // await Task.Delay(1000);
+        var lines = terminalLinesCredits.Select(term => new
+        {
+            elementId = $"line{term.Id}",
+            text = term.Value,
+            type = term.Type,
+            imageUrl = term.ImageUrl,
+            id = term.Id,
+            options = term.Options
+        }).ToArray();
+
+        await JS.InvokeVoidAsync("typeTextSequentially", lines, speed);
+    }
+}
